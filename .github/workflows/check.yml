@@ -1,0 +1,28 @@
+name: Compatibility
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        dependencies: [locked, latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: cachix/install-nix-action@v31
+      - name: Refresh upstream inputs
+        if: matrix.dependencies == 'latest'
+        run: nix flake update
+      - name: Test Home Manager compatibility
+        run: nix flake check --print-build-logs
