@@ -28,6 +28,9 @@ let
           home.homeDirectory = "/home/test";
           home.stateVersion = "25.11";
           programs.home-manager.enable = false;
+          home.file = lib.optionalAttrs pkgs.stdenv.hostPlatform.isDarwin {
+            "Library/Fonts/.home-manager-fonts-version".enable = false;
+          };
         }
         extra
       ];
@@ -147,6 +150,7 @@ lib.genAttrs [ "cp" "rsync" ] (
   assert global.config.home.file.optOut.enable;
   assert !global.config.home.file.disabled._hmMutable;
   assert global.config.home.file."${global.config.xdg.configHome}/inherited"._hmMutable;
+  assert lib.all (file: !file.enable || file.onChange == "") (lib.attrValues empty.config.home.file);
   pkgs.runCommand "hm-mutable-${copyCommand}"
     {
       nativeBuildInputs = [
